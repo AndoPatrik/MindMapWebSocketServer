@@ -6314,11 +6314,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\andop\\source\\repos\\MindMapWebSocketServer\\MindMapWebSocketServer\\MindMapWebSocketServer.csproj",
+      "projectUniqueName": "C:\\Development\\GitHubDesktop\\MindMapWebSocketServer\\MindMapWebSocketServer\\MindMapWebSocketServer\\MindMapWebSocketServer.csproj",
       "projectName": "MindMapWebSocketServer",
-      "projectPath": "C:\\Users\\andop\\source\\repos\\MindMapWebSocketServer\\MindMapWebSocketServer\\MindMapWebSocketServer.csproj",
+      "projectPath": "C:\\Development\\GitHubDesktop\\MindMapWebSocketServer\\MindMapWebSocketServer\\MindMapWebSocketServer\\MindMapWebSocketServer.csproj",
       "packagesPath": "C:\\Users\\andop\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\andop\\source\\repos\\MindMapWebSocketServer\\MindMapWebSocketServer\\obj\\",
+      "outputPath": "C:\\Development\\GitHubDesktop\\MindMapWebSocketServer\\MindMapWebSocketServer\\MindMapWebSocketServer\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\andop\\AppData\\Roaming\\NuGet\\NuGet.Config",

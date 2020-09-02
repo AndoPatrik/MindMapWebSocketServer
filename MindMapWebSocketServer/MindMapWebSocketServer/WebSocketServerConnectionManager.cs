@@ -9,11 +9,11 @@ namespace WebSocketServer
     public class WebSocketServerConnectionManager
     {
         private ConcurrentDictionary<WebSocket, string> _sockets = new ConcurrentDictionary<WebSocket, string>();
-        private ConcurrentDictionary<string, List<WebSocket>> _workspaceGroups = new ConcurrentDictionary<string, List<WebSocket>>();
+        private ConcurrentDictionary<string, List<WebSocket>> _projectGroups = new ConcurrentDictionary<string, List<WebSocket>>();
 
-        public void AddSocket(WebSocket socket, string workspaceName)
+        public void AddSocket(WebSocket socket, string projectName)
         {
-            _sockets.TryAdd(socket, workspaceName);
+            _sockets.TryAdd(socket, projectName);
             Console.WriteLine($"--- Socket saved");
         }
 
@@ -24,32 +24,32 @@ namespace WebSocketServer
             Console.WriteLine($"--- Socket removed");
         }
 
-        public string GetWorkspaceOfSocket(WebSocket socket) 
+        public string GetProjectOfSocket(WebSocket socket) 
         {
             return _sockets.FirstOrDefault(x => x.Key == socket).Value;
         }
 
-        public void SubscribeToWorkspace(WebSocket socket, string workspaceName) 
+        public void SubscribeToProject(WebSocket socket, string projectName) 
         {
-            if (!_workspaceGroups.ContainsKey(workspaceName))
+            if (!_projectGroups.ContainsKey(projectName))
             {
-                _workspaceGroups.TryAdd(workspaceName, new List<WebSocket>());
+                _projectGroups.TryAdd(projectName, new List<WebSocket>());
             }
 
-            var workspace = _workspaceGroups.FirstOrDefault(x => x.Key == workspaceName);
-            workspace.Value.Add(socket);
-            Console.WriteLine($"--- New client subscribed to: {workspaceName}. # of subscribers: {workspace.Value.Count}");
+            var project = _projectGroups.FirstOrDefault(x => x.Key == projectName);
+            project.Value.Add(socket);
+            Console.WriteLine($"--- New client subscribed to: {projectName}. # of subscribers: {project.Value.Count}");
         }
 
-        public List<WebSocket> GetSocketsFromWorkspace(string workspaceName) 
+        public List<WebSocket> GetSocketsFromProject(string projectName) 
         {
-            var workspace = _workspaceGroups.FirstOrDefault(x => x.Key == workspaceName);
+            var workspace = _projectGroups.FirstOrDefault(x => x.Key == projectName);
             return workspace.Value;
         }
 
-        public void UnsubscribeFromWorkspace(WebSocket socket, string workspaceName)
+        public void UnsubscribeFromProject(WebSocket socket, string workspaceName)
         {
-            var workspace = _workspaceGroups.FirstOrDefault(x => x.Key == workspaceName);
+            var workspace = _projectGroups.FirstOrDefault(x => x.Key == workspaceName);
             workspace.Value.Remove(socket);
             Console.WriteLine($"--- Client unsubscribed from: {workspaceName}. # of subscribers: {workspace.Value.Count}");
         }

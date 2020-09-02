@@ -44,7 +44,7 @@ namespace WebSocketServer.Middleware
                         else if (result.MessageType == WebSocketMessageType.Close)
                         {
                             _logger.LogInformation($"Receive->Close");
-                            _manager.UnsubscribeFromWorkspace(webSocket, _manager.GetWorkspaceOfSocket(webSocket));
+                            _manager.UnsubscribeFromProject(webSocket, _manager.GetProjectOfSocket(webSocket));
                             _manager.RemoveSocket(webSocket);
                             await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
                             return;
@@ -71,7 +71,7 @@ namespace WebSocketServer.Middleware
             if (message.Contains("Subscribe"))
             {
                 _manager.AddSocket(socket, json.Subscribe.ToString());
-                _manager.SubscribeToWorkspace(socket, json.Subscribe.ToString());
+                _manager.SubscribeToProject(socket, json.Subscribe.ToString());
 
                 //Temp solution -- NEED TO BE REFACTORED
 
@@ -100,7 +100,7 @@ namespace WebSocketServer.Middleware
             }
             if (message.Contains("To"))
             {
-                foreach (WebSocket soc in _manager.GetSocketsFromWorkspace(json.To.ToString()))
+                foreach (WebSocket soc in _manager.GetSocketsFromProject(json.To.ToString()))
                 {
                     if (soc.State == WebSocketState.Open)
                     {

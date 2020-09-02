@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "KPavZhl7ik8aKcte0bum7FisZDkII23us1s/fvTgDdWwQ5aLsg+uxC2MStY5lS/ligfzUCl2AsTQZ9Kz3YfKoQ==",
+  "dgSpecHash": "rOPN39XdgEF6muq18OY2ChEJZhuW0AxwvrqIqZa/1gFLyb5cYTFex3erY7vY/9+Z8P+Oji1aJcp9oWpkuKLGMg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\andop\\source\\repos\\MindMapWebSocketServer\\MindMapWebSocketServer\\MindMapWebSocketServer.csproj",
+  "projectFilePath": "C:\\Development\\GitHubDesktop\\MindMapWebSocketServer\\MindMapWebSocketServer\\MindMapWebSocketServer\\MindMapWebSocketServer.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\andop\\.nuget\\packages\\dnsclient\\1.3.1\\dnsclient.1.3.1.nupkg.sha512",
     "C:\\Users\\andop\\.nuget\\packages\\microsoft.netcore.platforms\\2.1.2\\microsoft.netcore.platforms.2.1.2.nupkg.sha512",
