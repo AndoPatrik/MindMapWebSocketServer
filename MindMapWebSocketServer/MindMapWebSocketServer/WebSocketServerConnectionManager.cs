@@ -1,8 +1,10 @@
+using MindMapWebSocketServer.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Security;
 
 namespace WebSocketServer
 {
@@ -10,6 +12,26 @@ namespace WebSocketServer
     {
         private ConcurrentDictionary<WebSocket, string> _sockets = new ConcurrentDictionary<WebSocket, string>();
         private ConcurrentDictionary<string, List<WebSocket>> _projectGroups = new ConcurrentDictionary<string, List<WebSocket>>();
+        private ConcurrentDictionary<string, Project> _projectLocalSate = new ConcurrentDictionary<string, Project>();
+
+        public void AddProjectLocalState(Project projectToStore, string projectName) 
+        {
+            _projectLocalSate.TryAdd(projectName, projectToStore);
+            Console.WriteLine($"--- Project save saved");
+        }
+
+        public void UpdateLocalStateOfProject(string projectName, Project updatedProject) 
+        {
+            //var projectToBeUpdated = _projectLocalSate.FirstOrDefault(p => p.Key == projectName);
+            //projectToBeUpdated.Value = updatedProject;
+
+            _projectLocalSate[projectName] = updatedProject;
+        }
+
+        public Project GetLocalProjectState(string projectName) 
+        {
+            return _projectLocalSate.FirstOrDefault(p => p.Key == projectName).Value;
+        }
 
         public void AddSocket(WebSocket socket, string projectName)
         {

@@ -38,7 +38,7 @@ namespace WebSocketServer.Middleware
                         if (result.MessageType == WebSocketMessageType.Text)
                         {
                             _logger.LogInformation($"Receive->Text -- Message: {Encoding.UTF8.GetString(buffer, 0, result.Count)}");
-                            await ProcessMessage(Encoding.UTF8.GetString(buffer, 0, result.Count), webSocket);
+                                await ProcessMessage(Encoding.UTF8.GetString(buffer, 0, result.Count), webSocket);
                             return;
                         }
                         else if (result.MessageType == WebSocketMessageType.Close)
@@ -64,55 +64,103 @@ namespace WebSocketServer.Middleware
             }
         }
 
-        private async Task ProcessMessage(string message, WebSocket socket) 
+        private async Task ProcessMessage(string message, WebSocket socket)
         {
-            var json = JsonConvert.DeserializeObject<dynamic>(message);
-
-            if (message.Contains("Subscribe"))
+            if (Validators.IsValidJson(message)) 
             {
-                _manager.AddSocket(socket, json.Subscribe.ToString());
-                _manager.SubscribeToProject(socket, json.Subscribe.ToString());
+                var json = JsonConvert.DeserializeObject<dynamic>(message);
 
-                //Temp solution -- NEED TO BE REFACTORED
+                if (message.Contains("Subscribe"))
+                {
+                    _manager.AddSocket(socket, json.Subscribe.ToString());
+                    _manager.SubscribeToProject(socket, json.Subscribe.ToString());
 
-                
-                var yx = db.LoadProjectByName(json.Subscribe.ToString());
+                    //Temp solution -- NEED TO BE REFACTORED
+                    //var yx = db.LoadProjectByName(json.Subscribe.ToString());
 
-
-                if (json.Subscribe.ToString() == "Test")
-                {
-                    var x = db.LoadProjectById(new ObjectId("5f43cd71d5cf2d48715bd088"));
-                    await socket.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(x)), WebSocketMessageType.Text, true, CancellationToken.None);
-                    return;
-                }
-                if (json.Subscribe.ToString() == "TestProject2")
-                {
-                    var y = db.LoadProjectById(new ObjectId("5f196da2054cb25510fdd774"));
-                    await socket.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(y)), WebSocketMessageType.Text, true, CancellationToken.None);
-                    return;
-                }
-                else 
-                {
-                    string notCreatedText = "Project on this name have not been created yet!";
-                    await socket.SendAsync(Encoding.UTF8.GetBytes(notCreatedText), WebSocketMessageType.Text, true, CancellationToken.None);
-                }
-                return;
-            }
-            if (message.Contains("To"))
-            {
-                foreach (WebSocket soc in _manager.GetSocketsFromProject(json.To.ToString()))
-                {
-                    if (soc.State == WebSocketState.Open)
+                    if (json.Subscribe.ToString() == "Test")
                     {
-                        if (soc != socket)
+                        var localProjectState = _manager.GetLocalProjectState(json.Subscribe.ToString());
+
+                        if (localProjectState == null)
                         {
-                            await soc.SendAsync(Encoding.UTF8.GetBytes(json.Message.ToString()), WebSocketMessageType.Text, true, CancellationToken.None);
+                            var projectFromDb = db.LoadProjectById(new ObjectId("5f43cd71d5cf2d48715bd088"));
+                            await socket.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(projectFromDb)), WebSocketMessageType.Text, true, CancellationToken.None);
+                            _manager.AddProjectLocalState(projectFromDb, json.Subscribe.ToString());
+                            return;
+                        }
+                        else
+                        {
+                            await socket.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(localProjectState)), WebSocketMessageType.Text, true, CancellationToken.None);
+                            return;
                         }
                     }
+                    if (json.Subscribe.ToString() == "TestProject2")
+                    {
+                        var y = db.LoadProjectById(new ObjectId("5f196da2054cb25510fdd774"));
+                        await socket.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(y)), WebSocketMessageType.Text, true, CancellationToken.None);
+                        return;
+                    }
+                    else
+                    {
+                        string notCreatedText = "Project on this name have not been created yet!";
+                        await socket.SendAsync(Encoding.UTF8.GetBytes(notCreatedText), WebSocketMessageType.Text, true, CancellationToken.None);
+                    }
+                    return;
                 }
-                return;
+                if (message.Contains("To"))
+                {
+                    //Find out what action is updated -- Done (Switch)
+                    //  Update saved local object -- In progress (Body of different cases)
+                    //      Send update to      
+
+                    string projectName = json.To;
+                    string action = json.Action;
+                    var element = json.Element;     
+
+                    var projectToUpdate = _manager.GetLocalProjectState(projectName);
+                    string toReturn = message;
+
+                    switch (action)
+                    {
+                        case "AddBox":
+                            projectToUpdate.Boxes.Add(element);
+                            _manager.UpdateLocalStateOfProject(projectName, projectToUpdate);
+                            toReturn = message;
+                            break;
+                        case "RemoveBox":
+                            break;
+                        case "MoveBox":
+                            break;
+                        case "AddConnection":
+                            break;
+                        case "RemoveConnection":
+                            break;
+                        case "AddInneritem":
+                            break;
+                        case "DraggedInneritem":
+                            break;
+                        case "RemoveInneritem":
+                            break;
+                        default:
+                            toReturn = json.Message.ToString(); 
+                            break;
+                    }
+
+                    foreach (WebSocket soc in _manager.GetSocketsFromProject(json.To.ToString()))
+                    {
+                        if (soc.State == WebSocketState.Open)
+                        {
+                            if (soc != socket)
+                            {
+                                await soc.SendAsync(Encoding.UTF8.GetBytes(toReturn), WebSocketMessageType.Text, true, CancellationToken.None);
+                            }
+                        }
+                    }
+                    return;
+                }
             }
-            else 
+            else
             {
                 await socket.SendAsync(Encoding.UTF8.GetBytes("Your message could not have been processed. Please try again."), WebSocketMessageType.Text, true, CancellationToken.None);
                 _logger.LogWarning($"Unhandled message recieved --> {message}");
