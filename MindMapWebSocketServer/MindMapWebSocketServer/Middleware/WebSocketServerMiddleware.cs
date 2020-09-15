@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using MindMapWebSocketServer.Models;
 using MindMapWebSocketServer.Utility;
 using MongoDB.Bson;
 using Newtonsoft.Json;
@@ -38,7 +39,7 @@ namespace WebSocketServer.Middleware
                         if (result.MessageType == WebSocketMessageType.Text)
                         {
                             _logger.LogInformation($"Receive->Text -- Message: {Encoding.UTF8.GetString(buffer, 0, result.Count)}");
-                                await ProcessMessage(Encoding.UTF8.GetString(buffer, 0, result.Count), webSocket);
+                            await ProcessMessage(Encoding.UTF8.GetString(buffer, 0, result.Count), webSocket);
                             return;
                         }
                         else if (result.MessageType == WebSocketMessageType.Close)
@@ -66,7 +67,7 @@ namespace WebSocketServer.Middleware
 
         private async Task ProcessMessage(string message, WebSocket socket)
         {
-            if (Validators.IsValidJson(message)) 
+            if (Validators.IsValidJson(message))
             {
                 var json = JsonConvert.DeserializeObject<dynamic>(message);
 
@@ -116,9 +117,10 @@ namespace WebSocketServer.Middleware
 
                     string projectName = json.To;
                     string action = json.Action;
-                    var element = json.Element;     
+                    var element = json.Element;
 
                     var projectToUpdate = _manager.GetLocalProjectState(projectName);
+                    //var projectToUpdateDesrilazied = JsonConvert.DeserializeObject<object>(projectToUpdate.ToString());
                     string toReturn = message;
 
                     switch (action)
@@ -129,8 +131,16 @@ namespace WebSocketServer.Middleware
                             toReturn = message;
                             break;
                         case "RemoveBox":
+                            //object ret = projectToUpdate.Boxes.Find<Box>(b => b.boxId == element.boxId);
+
+                            //var boxes = JsonConvert.DeserializeObject<object>(projectToUpdate.Boxes.ToString());
+                            //_manager.UpdateLocalStateOfProject(projectName, projectToUpdate);
+                            //toReturn = message;
                             break;
                         case "MoveBox":
+                            //var boxToUpdate = projectToUpdate.Boxes.Find(element.oldBox);
+                            //boxToUpdate = element.newBox;
+                            //_manager.UpdateLocalStateOfProject(projectName, projectToUpdate);
                             break;
                         case "AddConnection":
                             break;
@@ -143,7 +153,7 @@ namespace WebSocketServer.Middleware
                         case "RemoveInneritem":
                             break;
                         default:
-                            toReturn = json.Message.ToString(); 
+                            toReturn = json.Message.ToString();
                             break;
                     }
 
@@ -166,7 +176,7 @@ namespace WebSocketServer.Middleware
                 _logger.LogWarning($"Unhandled message recieved --> {message}");
             }
         }
-    
+
         private async Task Receive(WebSocket socket, Action<WebSocketReceiveResult, byte[]> handleMessage)
         {
             var buffer = new byte[1024 * 4];
