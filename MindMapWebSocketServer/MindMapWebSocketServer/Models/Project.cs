@@ -9,9 +9,9 @@ namespace MindMapWebSocketServer.Models
         [BsonId]
         public ObjectId Id { get; set; }
         [BsonElement("boxes")]
-        public List<object> Boxes { get; set; }
+        public List<Box> Boxes { get; set; }
         [BsonElement("connections")]
-        public List<object> Connections { get; set; }
+        public List<Connection> Connections { get; set; }
         [BsonElement("name")]
         public string ProjectName { get; set; }
     }

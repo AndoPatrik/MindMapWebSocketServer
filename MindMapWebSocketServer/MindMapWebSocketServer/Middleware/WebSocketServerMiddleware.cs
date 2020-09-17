@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -69,7 +70,7 @@ namespace WebSocketServer.Middleware
         {
             if (Validators.IsValidJson(message))
             {
-                var json = JsonConvert.DeserializeObject<dynamic>(message);
+                dynamic json = JsonConvert.DeserializeObject(message.Trim('\\'));
 
                 if (message.Contains("Subscribe"))
                 {
@@ -119,32 +120,92 @@ namespace WebSocketServer.Middleware
                     string action = json.Action;
                     var element = json.Element;
 
-                    var projectToUpdate = _manager.GetLocalProjectState(projectName);
+                    Project projectToUpdate = _manager.GetLocalProjectState(projectName);
                     //var projectToUpdateDesrilazied = JsonConvert.DeserializeObject<object>(projectToUpdate.ToString());
                     string toReturn = message;
 
                     switch (action)
                     {
                         case "AddBox":
-                            projectToUpdate.Boxes.Add(element);
+                            string boxId = json.Element.boxId;
+                            int offsetLeft = json.Element.offsetLeft;
+                            int offsetTop = json.Element.offsetTop;
+                            string title = json.Element.title;
+                            Box boxToAdd = new Box(boxId,offsetLeft,offsetTop,title);
+                            projectToUpdate.Boxes.Add(boxToAdd);
                             _manager.UpdateLocalStateOfProject(projectName, projectToUpdate);
-                            toReturn = message;
                             break;
                         case "RemoveBox":
-                            //object ret = projectToUpdate.Boxes.Find<Box>(b => b.boxId == element.boxId);
+                            
+                            string boxIdtoRemove = json.Element.boxId;
+                            string conToRemove = json.Element.conId;
 
-                            //var boxes = JsonConvert.DeserializeObject<object>(projectToUpdate.Boxes.ToString());
-                            //_manager.UpdateLocalStateOfProject(projectName, projectToUpdate);
-                            //toReturn = message;
+                            foreach (var b in projectToUpdate.Boxes)
+                            {
+                                if (b.boxId == boxIdtoRemove) 
+                                { 
+                                    projectToUpdate.Boxes.Remove(b);
+                                    break;
+                                }
+                            }
+                            List<Connection> connectionsToRemove = new List<Connection>() { };
+                            foreach (var c in projectToUpdate.Connections)
+                            {
+                                if (c.divA == boxIdtoRemove || c.divB == boxIdtoRemove)
+                                {
+                                    connectionsToRemove.Add(c);
+                                }
+                            }
+
+                            if (connectionsToRemove != null || connectionsToRemove.Count == 0) 
+                            {
+                                foreach (var c in connectionsToRemove)
+                                {
+                                    projectToUpdate.Connections.Remove(c);
+                                }
+                            }
+                            _manager.UpdateLocalStateOfProject(projectName, projectToUpdate);
                             break;
                         case "MoveBox":
-                            //var boxToUpdate = projectToUpdate.Boxes.Find(element.oldBox);
-                            //boxToUpdate = element.newBox;
-                            //_manager.UpdateLocalStateOfProject(projectName, projectToUpdate);
+                            string boxIdToUpdate = json.Element.boxId;
+                            int offsetLeftToUpdate = json.Element.offsetLeft;
+                            int offsetTopToUpdate = json.Element.offsetTop;
+
+                            foreach (var b in projectToUpdate.Boxes)
+                            {
+                                if (b.boxId == boxIdToUpdate)
+                                {
+                                    b.offsetLeft = offsetLeftToUpdate;
+                                    b.offsetTop = offsetTopToUpdate;
+                                    break;
+                                }
+                            }
+                            _manager.UpdateLocalStateOfProject(projectName, projectToUpdate);
                             break;
                         case "AddConnection":
+                            string divA = json.Element.divA;
+                            string divB = json.Element.divB;
+                            string conId = json.Element.conId;
+                            string color = json.Element.color;
+
+                            Connection connectionToAdd = new Connection(divA, divB, color, conId);
+
+                            projectToUpdate.Connections.Add(connectionToAdd);
+
                             break;
                         case "RemoveConnection":
+
+                            string conIdToRemove = json.Element;
+
+                            foreach (var c in projectToUpdate.Connections)
+                            {
+                                if (c.conId == conIdToRemove) 
+                                {
+                                    projectToUpdate.Connections.Remove(c);
+                                    break;
+                                }
+                            }
+
                             break;
                         case "AddInneritem":
                             break;
